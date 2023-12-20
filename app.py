@@ -217,7 +217,7 @@ class GeneratorModelDecoder(nn.Module):
             # sample from the distribution
             idx_next = torch.multinomial(probs, num_samples=1) # (B, 1)
 
-        
+         
 
             # idx_next = nucleus_sampling(probs, p=0.7)
             # append sampled index to the running sequence
