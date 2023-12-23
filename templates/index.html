@@ -13,6 +13,8 @@
             align-items: center;
             justify-content: center;
             font-family: 'Arial', sans-serif;
+            padding-top: 20px;
+            padding-bottom: 20px;
         }
 
         #section1, #content, #controls {
@@ -73,6 +75,27 @@
                 font-size: 1em;
             }
         }
+
+        #quadrants {
+    display: none; /* Initially hidden */
+        }
+
+    #controls {
+        margin-top: 20px;
+    }
+
+    button {
+        margin-top: 10px;
+    }
+
+    /* Use Bootstrap classes for buttons and input */
+    button, input, label {
+        margin: 5px 0;
+    }
+
+
+    
+
     </style>
 
 
@@ -80,6 +103,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@magenta/music@^1.0.0"></script>
 
 <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
+
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 
 
 
@@ -100,11 +125,21 @@
     <div id="controls">
         <input type="number" id="maxValueInput" placeholder="Enter Sequence Length" step="10" />
     
-        <button id="generateButton">Generate MIDI Sequence</button>
-        <button id="clearContextButton">Clear Context</button>
+        <button id="generateButton" class="btn btn-primary">Generate MIDI Sequence</button>
+        <button id="clearContextButton" class="btn btn-secondary">Clear Context</button>
+
+        <div class="checkbox-container">
+            <input type="checkbox" id="noVA">
+            <label for="noVA" class="checkbox-label">Use Valence Arousal Quadrant Values</label>
+        </div>
         <a href="#"id="downloadButton" style="display: none;">
             <button >Download MIDI Sequence</button>
         </a>
+    </div>
+
+
+    <div id="quadrants">
+       <canvas id="canvas" width="400" height="400" style="border:1px solid #000000;"></canvas>
     </div>
 
     <div id="content">
@@ -127,9 +162,98 @@ import midiWriterJs from "https://cdn.skypack.dev/midi-writer-js@2.1.4";
 
 let globalContext = [173];
 let sequenceGenerated = false;
+let useVA = false;
+
+
 const generateButton = document.getElementById('generateButton');
 const clearContextButton = document.getElementById('clearContextButton');
+const useVAcheckbox = document.getElementById('noVA');
 
+useVAcheckbox.addEventListener('change', function() {
+    useVA = useVAcheckbox.checked;
+    const quadrantsDiv = document.getElementById('quadrants');
+    quadrantsDiv.style.display = useVA ? 'block' : 'none';
+});
+
+let quadrantCounts = [0,0,0,0];
+
+ // Get the canvas and context
+ const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Function to draw the initial quadrants
+        function drawQuadrants() {
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Draw horizontal line
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+
+            // Draw vertical line
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+
+            // Stroke the lines
+            ctx.stroke();
+        }
+
+        // Function to update the tally for a quadrant
+        function updateTally(x, y) {
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Determine the quadrant
+            let quadrant;
+            if (x < width / 2 && y < height / 2) {
+                quadrant = 1; // Top-left
+            } else if (x >= width / 2 && y < height / 2) {
+                quadrant = 0; // Top-right
+            } else if (x < width / 2 && y >= height / 2) {
+                quadrant = 2; // Bottom-left
+            } else {
+                quadrant = 3; // Bottom-right
+            }
+
+            // Increment the count for the quadrant and cycle back to 0 if it's currently 4
+            quadrantCounts[quadrant] = (quadrantCounts[quadrant] + 1) % 5;
+
+            // Redraw the quadrant tallies
+            drawTallies();
+        }
+
+        
+        function drawTallies() {
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Clear the canvas first
+            ctx.clearRect(0, 0, width, height);
+
+            // Redraw the quadrants
+            drawQuadrants();
+
+            // Set font for tally text
+            ctx.font = '20px Arial';
+            ctx.fillStyle = 'black';
+
+            // Draw the tally for each quadrant
+            ctx.fillText(quadrantCounts[1], width * 0.25, height * 0.25); // Top-left
+            ctx.fillText(quadrantCounts[0], width * 0.75, height * 0.25); // Top-right
+            ctx.fillText(quadrantCounts[2], width * 0.25, height * 0.75); // Bottom-left
+            ctx.fillText(quadrantCounts[3], width * 0.75, height * 0.75); // Bottom-right
+        }
+
+        // Event listener for canvas click
+                canvas.addEventListener('click', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            updateTally(x, y);
+        });
+
+        // Initial draw
+        drawQuadrants();
 
 
 
@@ -221,7 +345,9 @@ document.getElementById('generateButton').addEventListener('click', async () => 
 
         const requestPayload = {
             sequence_length: maxValue,
-            context: globalContext
+            context: globalContext,
+            quadrant_use : useVA,
+            quadrant_counts : quadrantCounts
         };
 
         try {
