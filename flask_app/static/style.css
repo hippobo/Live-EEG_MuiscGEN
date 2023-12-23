@@ -1,0 +1,180 @@
+/* Base styles */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Ensure the body takes full width */
+body {
+    width: 100vw;
+    align-items: center; /* Center children */
+    justify-content: flex-start; /* Align content to the top */
+}
+
+
+section {
+    flex: 1; /* Allow sections to grow and fill the space */
+    margin: 10px; /* Space out sections */
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Optional: adds shadow for depth */
+}
+
+/* Controls styles */
+#controls {
+    flex-basis: 100%; /* Take full width on smaller screens */
+}
+
+/* MIDI player and visualizer styles */
+midi-player, midi-visualizer {
+    width: 100%;
+    max-width: 800px;
+    height: 180px;
+    margin: 10px 0;
+}
+
+/* Text styles */
+#text {
+    font-size: 1.2em;
+    color: #000;
+    margin: 10px 0;
+    word-break: break-word;
+}
+
+/* Input and button styles */
+input[type="number"], button, input[type="checkbox"] {
+    font-size: 1.2em;
+    margin: 5px;
+    padding: 10px 20px;
+}
+
+/* Heading styles */
+h1, h2 {
+    font-size: 2em;
+    color: #333;
+}
+
+/* Token styles */
+.token {
+    font-size: 1em;
+    margin: 0 5px;
+}
+
+/* Checkbox container styles */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin: 10px;
+}
+
+/* Checkbox label styles */
+.checkbox-label {
+    margin-left: 5px;
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 600px) {
+    h1, h2 {
+        font-size: 1.5em;
+    }
+
+    #text {
+        font-size: 1em;
+    }
+}
+
+/* Quadrant styles */
+#quadrants {
+    display: none;
+}
+
+
+/* Button styles */
+button {
+    margin-top: 10px;
+}
+
+/* Common styles for buttons, inputs, and labels */
+button, input, label {
+    margin: 5px 0;
+}
+
+/* Slider container styles */
+.slidecontainer {
+    width: 100%;
+}
+
+/* Slider styles */
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 15px;
+    border-radius: 5px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #0f83f0;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #0db3e5;
+    cursor: pointer;
+}
+
+/* Flex container styles */
+/* Flex container to spread out sections */
+.flex-container {
+    display: flex;
+    flex-direction: row; /* Align children horizontally */
+    justify-content: space-around; /* Space out children */
+    align-items: stretch; /* Stretch children to fill the container */
+    width: 100%; /* Take the full width of the viewport */
+    flex-wrap: wrap; /* Wrap items to next line if not enough space */
+}
+
+/* Flex item styles */
+.flex-item {
+    margin: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 10px;
+    flex: 1;
+    max-width: calc(33% - 20px);
+}
+
+/* Responsive adjustments for larger screens */
+@media (min-width: 1200px) {
+    .flex-item {
+        max-width: calc(33% - 20px);
+    }
+}
+
+/* Responsive adjustments for medium screens */
+@media (max-width: 992px) {
+    .flex-item {
+        max-width: calc(50% - 20px);
+    }
+}
+
+
+@media (max-width: 768px) {
+    /* On smaller screens, stack elements vertically */
+    .flex-container {
+        flex-direction: column;
+    }
+}

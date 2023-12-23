@@ -1,168 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>MIDI Sequence Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Arial', sans-serif;
-            padding-top: 20px;
-            padding-bottom: 20px;
-        }
-
-        #section1, #content, #controls {
-            width: 90%; /* Responsive width */
-            max-width: 800px; /* Maximum width */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 10px auto;
-        }
-
-        midi-player, midi-visualizer {
-            width: 100%; /* Responsive width */
-            max-width: 800px;
-            height: 180px;
-            margin: 10px 0;
-        }
-
-        #text {
-            font-size: 1.2em;
-            color: #000;
-            margin: 10px 0;
-            word-break: break-word; /* Prevents overflow on small screens */
-        }
-
-        input[type="number"], button, input[type="checkbox"] {
-            font-size: 1.2em;
-            margin: 5px;
-            padding: 10px 20px;
-        }
-
-        h1, h2 {
-            font-size: 2em;
-            color: #333;
-        }
-
-        .token {
-            font-size: 1em;
-            margin: 0 5px;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            margin: 10px;
-        }
-
-        .checkbox-label {
-            margin-left: 5px;
-        }
-
-        @media (max-width: 600px) {
-            h1, h2 {
-                font-size: 1.5em;
-            }
-
-            #text {
-                font-size: 1em;
-            }
-        }
-
-        #quadrants {
-    display: none; /* Initially hidden */
-        }
-
-    #controls {
-        margin-top: 20px;
-    }
-
-    button {
-        margin-top: 10px;
-    }
-
-    /* Use Bootstrap classes for buttons and input */
-    button, input, label {
-        margin: 5px 0;
-    }
-
-
-    
-
-    </style>
 
 
 
-<script src="https://cdn.jsdelivr.net/npm/@magenta/music@^1.0.0"></script>
-
-<script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
-
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
-
-
-
-</head>
-
-<body>
-
-    <div>
-        <input type="file" id="midiFileInput" accept=".mid,.midi" />
-    </div>
-    
-    <section id="section1">
-        <h1>MIDI Sequence Generator</h1>
-        <midi-player src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid" sound-font visualizer="#section1 midi-visualizer"></midi-player>
-        <midi-visualizer id="player" type="piano-roll" src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid"></midi-visualizer>
-    </section>
-
-    <div id="controls">
-        <input type="number" id="maxValueInput" placeholder="Enter Sequence Length" step="10" />
-    
-        <button id="generateButton" class="btn btn-primary">Generate MIDI Sequence</button>
-        <button id="clearContextButton" class="btn btn-secondary">Clear Context</button>
-
-        <div class="checkbox-container">
-            <input type="checkbox" id="noVA">
-            <label for="noVA" class="checkbox-label">Use Valence Arousal Quadrant Values</label>
-        </div>
-        <a href="#"id="downloadButton" style="display: none;">
-            <button >Download MIDI Sequence</button>
-        </a>
-    </div>
-
-
-    <div id="quadrants">
-       <canvas id="canvas" width="400" height="400" style="border:1px solid #000000;"></canvas>
-    </div>
-
-    <div id="content">
-        <span id="text"></span>
-        <span id="carret" class="text-black animate-ping">|</span>
-    </div>
+var slider = document.getElementById("myRange");
+var output = document.getElementById("temperatureDisplay");
+let temperatureValue = 0.7;
+output.innerHTML = temperatureValue;
 
 
 
- 
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+ temperatureValue = slider.value/100;
+output.innerHTML = temperatureValue;
+
+}
 
 
 
-
-
-<script type="module">
-
-import midiWriterJs from "https://cdn.skypack.dev/midi-writer-js@2.1.4";
-
-
-let globalContext = [173];
 let sequenceGenerated = false;
 let useVA = false;
+let globalContext = [173]; // Initial context
 
 
 const generateButton = document.getElementById('generateButton');
@@ -171,15 +28,17 @@ const useVAcheckbox = document.getElementById('noVA');
 
 useVAcheckbox.addEventListener('change', function() {
     useVA = useVAcheckbox.checked;
+    globalContext = [221];
     const quadrantsDiv = document.getElementById('quadrants');
     quadrantsDiv.style.display = useVA ? 'block' : 'none';
+    clearContext();
 });
 
 let quadrantCounts = [0,0,0,0];
 
  // Get the canvas and context
  const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d');
 
         // Function to draw the initial quadrants
         function drawQuadrants() {
@@ -196,6 +55,14 @@ let quadrantCounts = [0,0,0,0];
 
             // Stroke the lines
             ctx.stroke();
+
+            ctx.font = '15px Arial';
+            ctx.fillStyle = 'black';
+
+            ctx.fillText("High Arousal, Low Valence",  width * 0.025, height * 0.05); // Top-left
+            ctx.fillText("High Arousal, High Valence", width * 0.52, height * 0.05); // Top-right
+            ctx.fillText("Low  Arousal, Low Valence", width * 0.025, height * 0.55); // Bottom-left
+            ctx.fillText("Low Arousal, High Valence", width * 0.52  , height * 0.55); // Bottom-right
         }
 
         // Function to update the tally for a quadrant
@@ -262,18 +129,13 @@ let midiBlob;
 
 
 
-const text = document.getElementById("text")
-      const display = (token) => {
-        globalContext.push(token);
-        text.innerHTML = globalContext.join(' ')
-    
-       
-        
-      }
       const clearContext = () => {
-        globalContext = [173];  // Reset the context
-        text.innerHTML = '';  // Clear the display
-        downloadButton.style.display = 'none'; // Hide the download button
+        if (useVA){
+            globalContext = [221]
+         }
+        else {globalContext = [173];  }
+        text.innerHTML = '';  
+        downloadButton.style.display = 'none'; 
         const midiPlayer = document.querySelector('midi-player');
         const midiVisualizer = document.querySelector('midi-visualizer');
         midiPlayer.src = '';
@@ -337,18 +199,20 @@ const tokenDisplay = document.getElementById("text");
 
 document.getElementById('generateButton').addEventListener('click', async () => {
         const maxValue = parseInt(document.getElementById('maxValueInput').value);
-
+        
         if (isNaN(maxValue) || maxValue <= 0) {
             alert('Please enter a valid sequence length.');
             return;
         }
-
+        
         const requestPayload = {
             sequence_length: maxValue,
             context: globalContext,
             quadrant_use : useVA,
-            quadrant_counts : quadrantCounts
+            quadrant_counts : quadrantCounts,
+            temperatureValue : temperatureValue
         };
+
 
         try {
             const response = await fetch('/generate_midi', {
@@ -362,9 +226,9 @@ document.getElementById('generateButton').addEventListener('click', async () => 
             if (response.ok) {
                 const responseData = await response.json();
 
-                // Update global context with the new sequence
+                
                 const newSequence = responseData.context;
-                globalContext.push(...newSequence);
+                globalContext = newSequence;
 
                 // Update the download button with the link to the MIDI file
                 downloadButton.style.display = 'block';
@@ -391,12 +255,4 @@ document.getElementById('generateButton').addEventListener('click', async () => 
 
 updateButtonText();
 
-</script>
 
-
-
-
-</body>
-
-
-</html>

@@ -7,10 +7,15 @@ import json
 
 from nbformat import convert
 
-config = TokenizerConfig(num_velocities=64 ,use_chords=True, use_tempos=True, use_programs=True)
-tokenizer = REMIPlus(config)
 
-# tokenizer._load_params(Path("tokenizer.json"))
+config = TokenizerConfig(num_velocities=64 ,use_chords=True, use_tempos=True, use_programs=True)
+emopia_tokenizer = REMIPlus(config)
+
+emopia_tokenizer._load_params(("tokenizer_emopia.json"))
+
+
+
+print(emopia_tokenizer._ids_to_tokens([4, 452, 221, 295]))
 
 # vocab = tokenizer._create_base_vocabulary()
 # print(tokenizer._ids_to_tokens([0,1,2,3,4]))
@@ -21,9 +26,12 @@ tokenizer = REMIPlus(config)
 # # converted_back_midi = tokenizer(tokens)
 
 # Tokenize a whole dataset and save it at Json files
-midi_paths = list(Path("EMOPIA_1.0/midis").glob("**/*.mid"))  # data augmentation on 2 pitch octaves, 1 velocity and 1 duration values
-tokenizer.tokenize_midi_dataset(midi_paths, Path("EMOPIA_tokenized"))
-tokenizer.save_params(Path("tokenizer_emopia.json"))
+# midi_paths = list(Path("EMOPIA_1.0/midis").glob("**/*.mid"))  # data augmentation on 2 pitch octaves, 1 velocity and 1 duration values
+# tokenizer.tokenize_midi_dataset(midi_paths, Path("EMOPIA_tokenized"))
+# tokenizer.save_params(Path("tokenizer_emopia.json"))
+
+
+
 # def find_corrupted_json_files(directory):
 #     corrupted_files = []
 #     for json_file in Path(directory).glob('**/*.json'):

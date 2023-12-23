@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, send_file, jsonify, make_response
 from werkzeug.utils import secure_filename
 import torch
-from generatordecoder import GeneratorModelDecoder
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -62,25 +61,27 @@ def index():
  
 @app.route('/generate_midi', methods=['POST'])
 def generate_midi():
+
     data = request.json
+    
     sequence_length = data['sequence_length']
     context = data['context']
     quadrant_use = data['quadrant_use']
     condition_values = data['quadrant_counts']
-
+    temperature_value = data['temperatureValue']
+    print(context)
+   
 
     if not quadrant_use:
         context = torch.tensor(context, dtype=torch.long, device=device)
         context = context.unsqueeze(0)
-
         model_noVA.load_state_dict(torch.load(f"models/model_{3}.pt", map_location=device))
         model_noVA.eval()
-    
         output_directory = 'generated_midi'
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
 
-        generated_seq = model_noVA.generate(context, max_new_tokens=sequence_length)
+        generated_seq = model_noVA.generate(context, max_new_tokens=sequence_length, temperature=temperature_value)
 
         midi = clean_tokenizer.tokens_to_midi(generated_seq.tolist()[0])
         output_file_name = secure_filename(f"generated_midi_seq.mid")
@@ -96,18 +97,17 @@ def generate_midi():
         output_directory = 'generated_midi'
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
-        print(condition_values)
-        generated_seq = model_emopia.generate(context, condition=torch.tensor(data=condition_values, dtype=torch.float, device=device), max_new_tokens=sequence_length)
+        generated_seq = model_emopia.generate(context, condition=torch.tensor(data=condition_values, dtype=torch.float, device=device), max_new_tokens=sequence_length, temperature=temperature_value)
  
         midi = emopia_tokenizer.tokens_to_midi(generated_seq.tolist()[0])
         output_file_name = secure_filename(f"generated_midi_seq.mid")
         output_file_path = os.path.join(output_directory, output_file_name)
         midi.dump(output_file_path)
-
+     
     response_data = {
         'context': generated_seq.tolist()[0],  # Include the generated sequence tokens
         'midi_file_url': f"/download_midi/{output_file_name}"  # URL to download the MIDI file
-    } 
+    }  
 
     response = make_response(jsonify(response_data))
     return response

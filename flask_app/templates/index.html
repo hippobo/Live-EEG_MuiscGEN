@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MIDI Sequence Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+
+<script src="https://cdn.jsdelivr.net/npm/@magenta/music@^1.0.0"></script>
+
+<script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
+
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+
+
+
+</head>
+
+<body>
+
+    <div>
+        <input type="file" id="midiFileInput" accept=".mid,.midi" />
+    </div>
+    
+    <div class="flex-container">
+        <section id="section1">
+            <h1>MIDI Sequence Generator</h1>
+            <midi-player src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid" sound-font visualizer="#section1 midi-visualizer"></midi-player>
+            <midi-visualizer id="player" type="piano-roll" src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid"></midi-visualizer>
+        </section>
+
+        <div id="controls">
+            <input type="number" id="maxValueInput" placeholder="Enter Sequence Length" step="10" />
+            <br>
+        
+            <input type="range" min="1" max="200" value="70" class="slider" id="myRange">
+            <p>Temperature: <span id="temperatureDisplay"></span></p>
+            <br>
+
+        <button id="generateButton" class="btn btn-primary">Generate MIDI Sequence</button>
+        <button id="clearContextButton" class="btn btn-secondary">Clear Context</button>
+
+        <div class="checkbox-container">
+            <input type="checkbox" id="noVA">
+            <label for="noVA" class="checkbox-label">Use Valence Arousal Quadrant Values</label>
+        </div>
+        <a href="#"id="downloadButton" style="display: none;">
+            <button >Download MIDI Sequence</button>
+        </a>
+    </div>
+
+
+    <div id="quadrants">
+       <canvas id="canvas" width="400" height="400" style="border:1px solid #000000;"></canvas>
+       
+    </div>
+</div>
+
+
+  
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+ 
+
+
+
+
+
+
+</body>
+
+
+</html>

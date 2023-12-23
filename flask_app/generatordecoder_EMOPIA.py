@@ -267,7 +267,7 @@ class GeneratorModelDecoder_EMOPIA(nn.Module):
 
         return logits, loss
 
-    def generate(self, idx, condition, max_new_tokens, temperature=0.7):
+    def generate(self, idx, condition, max_new_tokens, temperature):
         """
         Generate a sequence of tokens given an initial context and condition.
         :param idx: (B, T) tensor of initial token indices

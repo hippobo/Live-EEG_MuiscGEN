@@ -204,7 +204,7 @@ class GeneratorModelDecoder(nn.Module):
 
         return logits, loss
 
-    def generate(self, idx, max_new_tokens):
+    def generate(self, idx, max_new_tokens, temperature):
         # idx is (B, T) array of indices in the current context
         for _ in range(max_new_tokens):
             # crop idx to the last block_size tokens
@@ -214,7 +214,7 @@ class GeneratorModelDecoder(nn.Module):
             # focus only on the last time step
             logits = logits[:, -1, :] # becomes (B, C)
             # apply softmax to get probabilities
-            probs = temperature_scaled_softmax(logits,temperature=0.7) # (B, C)
+            probs = temperature_scaled_softmax(logits,temperature) # (B, C)
             # sample from the distribution
             idx_next = torch.multinomial(probs, num_samples=1) # (B, 1)
 
@@ -359,17 +359,17 @@ num_generations = 1
 
 #     # Decode the sequence
 #     generated_text = clean_tokenizer._ids_to_tokens(generated_seq)
-for i in range(num_generations):
-    output_directory = 'generated_midi'
+# for i in range(num_generations):
+#     output_directory = 'generated_midi'
 
-    context = torch.full((1, 1), 173, dtype=torch.long, device=device)
-    generated_seq = model.generate(context, max_new_tokens=250)
+#     context = torch.full((1, 1), 173, dtype=torch.long, device=device)
+#     generated_seq = model.generate(context, max_new_tokens=250)
     
-    generated_text = clean_tokenizer._ids_to_tokens(generated_seq.tolist()[0])
+#     generated_text = clean_tokenizer._ids_to_tokens(generated_seq.tolist()[0])
     
-    midi = clean_tokenizer.tokens_to_midi(generated_seq.tolist()[0])
-    output_file_path = os.path.join(output_directory, f"output_{2}.mid")
-    midi.dump(output_file_path)
+#     midi = clean_tokenizer.tokens_to_midi(generated_seq.tolist()[0])
+#     output_file_path = os.path.join(output_directory, f"output_{2}.mid")
+#     midi.dump(output_file_path)
 
 
 # midi_seq = [
