@@ -2,4 +2,4 @@ Flask app to generate music using 2 models: concatenated-transformer based on [c
 
 Screenshot of app using Arousal/Valence Quadrant values to condition generation
 
-![App screenshot using quadrants](docs/flask_screen1.png)
+![App screenshot using quadrants](docs/flask_screen0.png)
