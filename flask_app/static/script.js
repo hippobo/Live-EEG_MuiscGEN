@@ -40,6 +40,7 @@ let quadrantCounts = [0,0,0,0];
  const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
+
         // Function to draw the initial quadrants
         function drawQuadrants() {
             const width = canvas.width;
@@ -57,13 +58,13 @@ const ctx = canvas.getContext('2d');
             ctx.lineWidth = 5;
             ctx.stroke();
 
-            ctx.font = '15px Arial';
+            ctx.font = '20px Arial';
             ctx.fillStyle = 'black';
 
-            ctx.fillText("High Arousal, Low Valence",  width * 0.025, height * 0.05); // Top-left
-            ctx.fillText("High Arousal, High Valence", width * 0.52, height * 0.05); // Top-right
-            ctx.fillText("Low  Arousal, Low Valence", width * 0.025, height * 0.55); // Bottom-left
-            ctx.fillText("Low Arousal, High Valence", width * 0.52  , height * 0.55); // Bottom-right
+            ctx.fillText("Angry - LVHA",  width * 0.025, height * 0.05); // Top-left
+            ctx.fillText("Happy - HVHA", width * 0.52, height * 0.05); // Top-right
+            ctx.fillText("Sad - LVLA", width * 0.025, height * 0.55); // Bottom-left
+            ctx.fillText("Relaxed - HVLA", width * 0.52  , height * 0.55); // Bottom-right
         }
 
         // Function to update the tally for a quadrant
