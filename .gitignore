@@ -1,5 +1,4 @@
 /EMOPIA_1.0
 /EMOPIA_tokenized
 models/
-models/model_3.pt
-models/model_emopia.pt
+/__pycache__
