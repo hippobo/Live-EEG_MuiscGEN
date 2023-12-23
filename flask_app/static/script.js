@@ -8,7 +8,6 @@ output.innerHTML = temperatureValue;
 
 
 
-// Update the current slider value (each time you drag the slider handle)
 slider.oninput = function() {
  temperatureValue = slider.value/100;
 output.innerHTML = temperatureValue;
@@ -31,6 +30,7 @@ useVAcheckbox.addEventListener('change', function() {
     globalContext = [221];
     const quadrantsDiv = document.getElementById('quadrants');
     quadrantsDiv.style.display = useVA ? 'block' : 'none';
+    generateButton.textContent = 'Generate MIDI Sequence';
     clearContext();
 });
 
@@ -54,6 +54,7 @@ const ctx = canvas.getContext('2d');
             ctx.lineTo(width / 2, height);
 
             // Stroke the lines
+            ctx.lineWidth = 5;
             ctx.stroke();
 
             ctx.font = '15px Arial';
@@ -120,7 +121,7 @@ const ctx = canvas.getContext('2d');
         });
 
         // Initial draw
-        drawQuadrants();
+        drawTallies();
 
 
 
@@ -130,11 +131,12 @@ let midiBlob;
 
 
       const clearContext = () => {
+        sequenceGenerated = false;
+
         if (useVA){
             globalContext = [221]
          }
         else {globalContext = [173];  }
-        text.innerHTML = '';  
         downloadButton.style.display = 'none'; 
         const midiPlayer = document.querySelector('midi-player');
         const midiVisualizer = document.querySelector('midi-visualizer');
@@ -143,8 +145,16 @@ let midiBlob;
     }
 
 
+    clearContextButton.addEventListener('click', () => {
+        clearContext();
+        updateButtonText();  // Reset the flag
+        // Update the button text
+    });
+
     function updateButtonText() {
+    
     generateButton.textContent = sequenceGenerated ? 'Add to Sequence' : 'Generate MIDI Sequence';
+        
 }
 
 
@@ -187,11 +197,6 @@ const displayTokenByToken = (tokens) => {
     }, 1); // Adjust the interval time as needed
 }
 
-clearContextButton.addEventListener('click', () => {
-    clearContext();
-    sequenceGenerated = false; // Reset the flag
-    updateButtonText(); // Update the button text
-});
 
 
 document.getElementById('midiFileInput').addEventListener('change', updateMidiSource);
@@ -253,6 +258,6 @@ document.getElementById('generateButton').addEventListener('click', async () => 
         }
     });
 
-updateButtonText();
+
 
 

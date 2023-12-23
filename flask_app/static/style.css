@@ -27,14 +27,14 @@ section {
 #controls {
     flex-basis: 100%; /* Take full width on smaller screens */
 }
-
-/* MIDI player and visualizer styles */
+/* 
+MIDI player and visualizer styles
 midi-player, midi-visualizer {
     width: 100%;
     max-width: 800px;
     height: 180px;
     margin: 10px 0;
-}
+} */
 
 /* Text styles */
 #text {
