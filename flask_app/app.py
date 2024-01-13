@@ -65,11 +65,12 @@ def generate_midi():
     data = request.json
     
     sequence_length = data['sequence_length']
-    context = data['context']
+    context = data['context'] 
     quadrant_use = data['quadrant_use']
     condition_values = data['quadrant_counts']
     temperature_value = data['temperatureValue']
-    print(context)
+    # print(condition_values)
+    # print(context)
    
 
     if not quadrant_use:
