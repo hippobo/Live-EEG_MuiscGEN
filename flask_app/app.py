@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, jsonify, make_response
+from flask import Flask, render_template, request, send_file, jsonify, make_response, send_from_directory
 from werkzeug.utils import secure_filename
 import torch
 import torch
@@ -20,10 +20,10 @@ if torch.cuda.is_available():
     device = 'cuda'
 else:
     device = 'cpu'
-
+ 
 app = Flask(__name__) 
  
-
+ 
 
 #  Base Decoder no VA
 config_clean = TokenizerConfig(num_velocities=16, use_chords=True, use_programs=True)
@@ -39,12 +39,13 @@ n_head = 6
 model_noVA = GeneratorModelDecoder(n_embd, n_head).to(device)
 
 
-# EMOPIA Config
-
+# EMOPIA Config 
+ 
 config_emopia = TokenizerConfig(num_velocities=64 ,use_chords=True, use_tempos=True, use_programs=True)
 emopia_tokenizer = REMIPlus(config_emopia)
-
+ 
 emopia_tokenizer._load_params(("tokenizer_emopia.json"))
+ 
 
 
 n_embd_emopia = 576
@@ -52,13 +53,17 @@ n_head_emopia = 6
 
 
 model_emopia = GeneratorModelDecoder_EMOPIA(n_embd_emopia, n_head_emopia).to(device)
-
+ 
 
 @app.route('/')
 def index():
     return render_template('index.html')
- 
- 
+
+@app.route('/eeg_data')
+def eeg_data():
+    return send_from_directory('static', 'eeg_data_10ex.json')
+
+
 @app.route('/generate_midi', methods=['POST'])
 def generate_midi():
 

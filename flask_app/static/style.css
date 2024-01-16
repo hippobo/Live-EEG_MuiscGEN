@@ -1,69 +1,86 @@
 html, body {
-    height: 100%;
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+    background-color: #121212; /* Dark background */
+    color: #ffffff; /* Light text color for contrast */
     font-family: 'Arial', sans-serif;
 }
 
-/* Ensure the body takes full width */
-body {
-    width: 100vw;
-    align-items: center; /* Center children */
-    justify-content: flex-start; /* Align content to the top */
+.container-fluid {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-grow: 1;
+    width: 100%; /* Full width */
+    margin: 0; /* Remove margins */
+    padding: 0; /* Remove padding */
+    height: calc(100vh - 20px);
+    align-items: stretch;
+    background-color: #121212; /* Dark background */
+    color: #ffffff; /* Light text color for contrast */
 }
 
-
-section {
-    flex: 1; /* Allow sections to grow and fill the space */
-    margin: 10px; /* Space out sections */
-    padding: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Optional: adds shadow for depth */
+.midi_generator {
+    flex: 1; /* Allows the container to grow equally */
+    overflow: hidden; /* Prevents internal scrolling */
+    padding: 20px; /* Padding inside the midi generator */
 }
+
 
 /* Controls styles */
-#controls {
+.midi_generator  #controls {
     flex-basis: 100%; /* Take full width on smaller screens */
 }
-/* 
-MIDI player and visualizer styles
-midi-player, midi-visualizer {
-    width: 100%;
-    max-width: 800px;
-    height: 180px;
-    margin: 10px 0;
-} */
+
+midi-visualizer svg rect.note {
+  
+    fill: #ffffff;
+    stroke: #0036f7;
+}  
+
+midi-visualizer svg rect.note.active {
+    opacity: 0.9;
+    fill: #e90909;
+  }
+
 
 /* Text styles */
-#text {
+.midi_generator  #text {
     font-size: 1.2em;
-    color: #000;
+    color: #ffffff;
     margin: 10px 0;
     word-break: break-word;
 }
 
 /* Input and button styles */
-input[type="number"], button, input[type="checkbox"] {
+.midi_generator  input[type="number"], button, input[type="checkbox"] {
     font-size: 1.2em;
     margin: 5px;
     padding: 10px 20px;
+    background-color: #333333; /* Darker background for inputs */
+    border: 1px solid #444444; /* Subtle borders for inputs */
+    color: #ffffff; /* Light text color */
 }
 
 /* Heading styles */
-h1, h2 {
+.midi_generator  h1, h2 {
     font-size: 2em;
-    color: #333;
+    color: #ffffff;
+    margin: 0;
 }
 
 /* Token styles */
-.token {
+.midi_generator .token {
     font-size: 1em;
     margin: 0 5px;
 }
 
 /* Checkbox container styles */
-.checkbox-container {
+.midi_generator .checkbox-container {
     display: flex;
     align-items: center;
     margin: 10px;
@@ -74,40 +91,35 @@ h1, h2 {
     margin-left: 5px;
 }
 
-/* Media queries for responsiveness */
-@media (max-width: 600px) {
-    h1, h2 {
-        font-size: 1.5em;
-    }
 
-    #text {
-        font-size: 1em;
-    }
-}
 
 /* Quadrant styles */
-#quadrants {
+.midi_generator  #quadrants {
     display: none;
+    color: #ffffff;
 }
 
 
 /* Button styles */
-button {
+.midi_generator button {
     margin-top: 10px;
 }
 
 /* Common styles for buttons, inputs, and labels */
-button, input, label {
+.midi_generator button, input, label {
     margin: 5px 0;
+    background-color: #333333; /* Darker background for inputs */
+    border: 1px solid #444444; /* Subtle borders for inputs */
+    color: #ffffff; /* Light text color */
 }
 
 /* Slider container styles */
-.slidecontainer {
+.midi_generator .slidecontainer {
     width: 100%;
 }
 
 /* Slider styles */
-.slider {
+.midi_generator .slider {
     -webkit-appearance: none;
     width: 100%;
     height: 15px;
@@ -118,64 +130,25 @@ button, input, label {
     transition: opacity .2s;
 }
 
-.slider::-webkit-slider-thumb {
+.midi_generator .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #0f83f0;
+    background: #ffffff;
     cursor: pointer;
 }
 
-.slider::-moz-range-thumb {
+.midi_generator .slider::-moz-range-thumb {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #0db3e5;
+    background: #f4f8f9;
     cursor: pointer;
 }
 
-/* Flex container styles */
-/* Flex container to spread out sections */
-.flex-container {
-    display: flex;
-    flex-direction: row; /* Align children horizontally */
-    justify-content: space-around; /* Space out children */
-    align-items: stretch; /* Stretch children to fill the container */
-    width: 100%; /* Take the full width of the viewport */
-    flex-wrap: wrap; /* Wrap items to next line if not enough space */
-}
-
-/* Flex item styles */
-.flex-item {
-    margin: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    padding: 10px;
-    flex: 1;
-    max-width: calc(33% - 20px);
-}
 
 
+    
 
-/* Responsive adjustments for larger screens */
-@media (min-width: 1200px) {
-    .flex-item {
-        max-width: calc(33% - 20px);
-    }
-}
-
-/* Responsive adjustments for medium screens */
-@media (max-width: 992px) {
-    .flex-item {
-        max-width: calc(50% - 20px);
-    }
-}
-
-
-@media (max-width: 768px) {
-    /* On smaller screens, stack elements vertically */
-    .flex-container {
-        flex-direction: column;
-    }
-}

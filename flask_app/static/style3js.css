@@ -1,0 +1,77 @@
+.threejs {
+  flex: 1; /* Allows the container to grow equally */
+  overflow: hidden; /* Prevents internal scrolling */
+  display: flex; /* Necessary for children to be flex items */
+  flex-direction: column; /* Stacks children vertically */
+  align-items: center; /* Center-align the content horizontally */
+  justify-content: center; /* Center-align the content vertically */
+}
+
+#ThreeJsCanvas {
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  background-color: #121212;
+}
+
+
+
+.threejs #randomButton:hover {
+  background-color: #0056b3;
+}
+
+.threejs #randomButton {
+   
+ 
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .loading-screen {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+    justify-content: center;
+    align-items: center;
+    z-index: 100; /* High z-index to be on top of other elements */
+}
+
+.loading-content {
+    text-align: center;
+    color: white;
+}
+
+.loading-content p {
+    font-size: 1.5em;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid #fff;
+    width: 50px;
+    height: 50px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+

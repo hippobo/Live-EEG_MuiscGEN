@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MIDI Sequence Generator</title>
+    <title>MIDI Sequence Generator and EEG Visualizer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style3js.css') }}">
+
 
 
 <script src="https://cdn.jsdelivr.net/npm/@magenta/music@^1.0.0"></script>
@@ -14,17 +16,32 @@
 
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 
+ <!-- Import the css file -->
+
+
+ <!-- You can change 0.160.0 to any other availble Three.js version to match your requirements -->
+ 
+ <script type="importmap">
+     {
+         "imports": {
+             "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+             "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+         }
+     }
+    </script>
 
 
 </head>
 
 <body>
 
+<div class="container-fluid">
+
+<div class = "midi_generator">
     <div>
         <input type="file" id="midiFileInput" accept=".mid,.midi" />
     </div>
     
-    <div class="flex-container">
         <section id="section1">
             <h1>MIDI Sequence Generator</h1>
             <midi-player src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid" sound-font visualizer="#section1 midi-visualizer"></midi-player>
@@ -53,19 +70,40 @@
 
 
     <div id="quadrants">
-       <canvas id="canvas" width="450" height="450" style="border:5px solid #000000"></canvas>
+       <canvas id="canvas" width="450" height="450" style="border:5px solid #ffffff"></canvas>
        
     </div>
+
 </div>
 
+<div class="threejs">
 
-  
+ <!-- This canvas is the one you will use to display your Three.js code. -->
+ <div id="info">Example Number: <span id="exampleNum">0</span>
+</div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+<div>
 
- 
+ <label for="interpolationSlider">Interpolation Frame Rate:</label>
+ <input type="range" id="interpolationSlider" min="1" max="60" value="30">
+ <button id="randomButton">New example</button>
 
 
+</div>
+
+ <div id="ThreeJsCanvas"></canvas>
+
+ <!-- The import should happen after creating the other HTML elements since you will be importing them -->
+<script src="{{ url_for('static', filename='music_generator_script.js') }}"></script>
+
+ <script type="module" src="{{ url_for('static', filename='threejs_script.js') }}"></script>
+
+
+</div>
+
+</div>
+
+</div>
 
 
 
