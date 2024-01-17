@@ -53,19 +53,38 @@ n_head_emopia = 6
 
 
 model_emopia = GeneratorModelDecoder_EMOPIA(n_embd_emopia, n_head_emopia).to(device)
- 
+
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('demo.html')
 
-@app.route('/eeg_data')
-def eeg_data():
-    return send_from_directory('static', 'eeg_data_10ex.json')
+@app.route('/live_eeg')
+def live_eeg():
+    return render_template('live_eeg.html')
+
+@app.route('/eeg_data_demo')
+def eeg_data_demo():
+    return send_from_directory('static', 'eeg_data/eeg_data_demo.json')
 
 
-@app.route('/generate_midi', methods=['POST'])
-def generate_midi():
+@app.route('/eeg_data_live')
+def eeg_data_live():
+    return send_from_directory('static', 'eeg_data/eeg_data_demo.json')
+
+@app.route('/connect_eeg')
+def connect_eeg():
+    success = False  
+    if success:
+        return jsonify({'status': 'connected'})
+    else:
+        return jsonify({'status': 'failed'}), 500 
+
+
+
+
+@app.route('/generate_midi_demo', methods=['POST'])
+def generate_midi_demo():
 
     data = request.json
     
