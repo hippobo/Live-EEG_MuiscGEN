@@ -33,6 +33,9 @@ import subprocess, time
 
 eeg_status = {"message": "", "status": "idle"}
 eeg_model = keras.models.load_model("./models/EmotionNetV2.h5")
+
+PROCESSING_INTERVAL = 2
+
 fs = 256
 inputLength = 10.5 # Length of input in seconds
 shiftLength = 5 # Time between epochs
@@ -41,6 +44,7 @@ samples = int(shiftLength * fs) # How many samples to gather in every cycle
 bufferSize = int(128 * inputLength) # Size of buffer in samples. Enough to hold one set of downsampled input.
 
 buffers = np.zeros((4, bufferSize)) # buffers for each of the four channels
+emotions = [[0,0,0]]
 
 # Push new data onto buffer, removing any old data on the end
 def updateBuffer(buffer, newData):
@@ -98,6 +102,8 @@ def index():
 
 @app.route('/live_eeg')
 def live_eeg():
+    with open('./static/eeg_data/eeg_data_live.json', 'w') as json_file:
+                json.dump({}, json_file)
     return render_template('live_eeg.html')
 
 @app.route('/eeg_data_demo')
@@ -107,13 +113,15 @@ def eeg_data_demo():
 
 @app.route('/eeg_data_live')
 def eeg_data_live():
+    
     return send_from_directory('static', 'eeg_data/eeg_data_live.json')
 
 
 
 
 def eeg_inference():
-    global eeg_status
+    global eeg_status, emotions
+
     # Get the streamed data from the Muse. Blue Muse must be streaming.
     process = subprocess.Popen("muselsl stream --address 00:55:DA:B5:D5:CF", shell=True)
     print('Waiting 10 seconds for EEG stream to start...')
@@ -137,9 +145,8 @@ def eeg_inference():
 
     # Get the sampling frequency
     fs = int(info.nominal_srate())
-    print(fs)
 
-
+   
     try:
         eeg_status = {"message": "Connecting to EEG...", "status": "connecting"}
         while True:
@@ -173,6 +180,7 @@ def eeg_inference():
             processedEEG -= np.mean(processedEEG, axis=1, keepdims=True)
             
             
+
             # Update buffer
             for channel in range(buffers.shape[0]):
                 buffers[channel] = updateBuffer(buffers[channel], processedEEG[channel])
@@ -183,15 +191,11 @@ def eeg_inference():
             with open('./static/eeg_data/eeg_data_live.json', 'w') as json_file:
                 json.dump(eeg_data_json, json_file)
             buffers_reshaped = np.expand_dims(buffers, axis=0)
-            emotions = eeg_model.predict(buffers_reshaped)
+            emotions = eeg_model.predict(buffers_reshaped).tolist()
 
-            # Clip results in case they have outliers
-            emotions = np.clip(emotions, 1, 9)
-            
-            valence = emotions[0][0]
-            arousal = emotions[0][1]
-            dominance = emotions[0][2]
-            
+            emotions = [[max(min(val, 9), 1) for val in emotion] for emotion in emotions]
+
+            valence, arousal, dominance = emotions[0]
            
             print("Valence: {:.2f}".format(valence))
             print("Arousal: {:.2f}".format(arousal))
@@ -202,7 +206,20 @@ def eeg_inference():
         
     finally:
         inlet.close_stream()
+        with open('./static/eeg_data/eeg_data_live.json', 'w') as json_file:
+            json.dump({}, json_file)
         eeg_status = {"message": "EEG stream closed", "status": "closed"}
+
+
+@app.route('/eeg_emotions')
+def get_eeg_emotions():
+    global emotions
+    print("emotions", emotions) 
+    return jsonify({
+        "valence": emotions[0][0],
+        "arousal": emotions[0][1],
+        "dominance": emotions[0][2]
+    })
 
 @app.route('/connect_eeg')
 def connect_eeg():

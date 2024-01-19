@@ -20,10 +20,10 @@ let globalEEGData = null;
 let currentDataPoint = 0;
 let maxDataPoints = 0;
 let lowerBound, upperBound;
-let interpolationFrames = 60;
+let interpolationFrames = 120;
 
 
-const updateChannels = [19, 0, 1, 20];
+const updateChannels = [20, 0, 1, 21];
 
 
 
@@ -80,7 +80,7 @@ function initMaterial() {
 	uniforms[ 'thicknessDistortion' ].value = 0.25;
 	uniforms[ 'thicknessAmbient' ].value = 0.0;
 	uniforms[ 'thicknessAttenuation' ].value = 0.1;
-	uniforms[ 'thicknessPower' ].value = 2.0;
+	uniforms[ 'thicknessPower' ].value = 0.01;
 	uniforms[ 'thicknessScale' ].value = 25.0;
 
 	const material = new THREE.ShaderMaterial( {
@@ -297,19 +297,6 @@ function periodicallyFetchEEGData() {
 function initGUI( uniforms ) {
 
 	const gui = new GUI( { title: 'Thickness Control' } );
-
-	// const gui2 = new GUI({ title: 'Light Controls' });
-
-	// // Iterate over each light to create a folder and add controls
-	// Object.keys(lights).forEach(lightName => {
-	// 	const lightFolder = gui.addFolder(lightName);
-	// 	const pointLight = lights[lightName].children[0];
-
-	// 	// Add controls for intensity and distance
-	// 	lightFolder.add(pointLight, 'intensity', 0, 10).name('Intensity');
-	// 	lightFolder.add(pointLight, 'distance', 0, 1000).name('Distance');
-	// 			});
-
 
 
 	const ThicknessControls = function () {

@@ -43,7 +43,6 @@ def eeg_inference():
     time.sleep(10)
 
     # Search for active LSL streams
-    print('Looking for an EEG stream...')
     streams = resolve_byprop('type', 'EEG', timeout=10, minimum=1)
    
 
@@ -62,18 +61,8 @@ def eeg_inference():
     fs = int(info.nominal_srate())
     print(fs)
 
-
-    # Important info for plot
-    # img = plt.imread("EmotionSpace.jpg")
-    # width = img.shape[1]
-    # height = img.shape[0]
-    # centerX = int(width / 2) -8
-    # centerY = int(height / 2) +8
-    # pixPerValence = centerX / 5
-    # pixPerArousal = centerY / 5
-
     try:
-        eeg_status = {"message": "Connecting to EEG...", "status": "connecting"}
+        eeg_status = {"message": "Looking for an EEG stream...", "status": "connecting"}
         while True:
             eeg_status = {"message": "Processing EEG data...", "status": "processing"}
             # Continuously update EEG data and attempt to measure emotions

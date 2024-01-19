@@ -1,44 +1,23 @@
 
 
 
-var slider = document.getElementById("myRange");
-var output = document.getElementById("temperatureDisplay");
 let temperatureValue = 0.7;
-output.innerHTML = temperatureValue;
-
-
-
-slider.oninput = function() {
- temperatureValue = slider.value/100;
-output.innerHTML = temperatureValue;
-
-}
 
 
 
 let sequenceGenerated = false;
-let useVA = false;
-let globalContext = [173]; // Initial context
+let globalContext = [221]; //initial context
 
 
-const generateButton = document.getElementById('generateButton');
-const clearContextButton = document.getElementById('clearContextButton');
-const useVAcheckbox = document.getElementById('noVA');
 
 const midiPlayer = document.querySelector('midi-player');
 const midiVisualizer = document.querySelector('midi-visualizer');
 
 
 
+const quadrantsDiv = document.getElementById('quadrants');
+quadrantsDiv.style.display = 'block';
 
-useVAcheckbox.addEventListener('change', function() {
-    useVA = useVAcheckbox.checked;
-    globalContext = [221];
-    const quadrantsDiv = document.getElementById('quadrants');
-    quadrantsDiv.style.display = useVA ? 'block' : 'none';
-    generateButton.textContent = 'Generate MIDI Sequence';
-    clearContext();
-});
 document.addEventListener('DOMContentLoaded', function() {
     let statusInterval = null;
 
@@ -100,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
 let quadrantCounts = [0,0,0,0];
 
  // Get the canvas and context
- const canvas = document.getElementById('canvas');
+const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
 
@@ -134,7 +113,7 @@ const ctx = canvas.getContext('2d');
         }
 
         // Function to update the tally for a quadrant
-        function updateTally(x, y) {
+        function updateTally(x, y, dominance) {
             const width = canvas.width;
             const height = canvas.height;
 
@@ -151,7 +130,7 @@ const ctx = canvas.getContext('2d');
             }
 
             // Increment the count for the quadrant and cycle back to 0 if it's currently 4
-            quadrantCounts[quadrant] = (quadrantCounts[quadrant] + 1) % 5;
+            quadrantCounts[quadrant] = Math.round(dominance - 1) * (4 / (9 - 1));
 
             // Redraw the quadrant tallies
             drawTallies();
@@ -196,33 +175,52 @@ const downloadButton = document.getElementById('downloadButton');
 let midiBlob; 
 
 
-
-      const clearContext = () => {
-        sequenceGenerated = false;
-
-        if (useVA){
-            globalContext = [221]
-         }
-        else {globalContext = [173];  }
-        downloadButton.style.display = 'none'; 
-        
-        midiPlayer.src = '';
-        midiVisualizer.src = '';
-    }
-
-
-    clearContextButton.addEventListener('click', () => {
-        clearContext();
-        updateButtonText();  // Reset the flag
-        // Update the button text
-    });
-
     function updateButtonText() {
     
     generateButton.textContent = sequenceGenerated ? 'Add to Sequence' : 'Generate MIDI Sequence';
         
 }
 
+
+function fetchAndDisplayEmotions() {
+    fetch('/eeg_emotions')
+        .then(response => response.json())
+        .then(data => {
+            const { valence, arousal, dominance } = data;
+            drawPointOnCanvas(valence, arousal, dominance);
+        })
+        .catch(error => console.error('Error fetching EEG emotions:', error));
+}
+
+function drawPointOnCanvas(valence, arousal, dominance) {
+    const width = canvas.width;
+    const height = canvas.height;
+  
+    // Normalize valence and arousal to canvas coordinates
+    const x = (valence - 1) / 8 * width;
+    const y = (9 - arousal) / 8 * height;  // Invert arousal to match canvas coordinates
+
+    // Clear previous point
+    ctx.clearRect(0, 0, width, height);
+
+
+
+    // Redraw the quadrants
+    drawQuadrants();
+
+    // Draw the point
+    ctx.beginPath();
+    ctx.arc(x, y, dominance * 10, 0, 2 * Math.PI); // Dominance affects the size
+    ctx.fillStyle = 'red';
+    ctx.fill();
+
+    updateTally(x,y, dominance);
+
+    // Redraw tallies
+    
+}
+
+setInterval(fetchAndDisplayEmotions, 2000);
 
 function updateMidiSource() {
     var input = document.getElementById('midiFileInput');
@@ -245,24 +243,6 @@ function updateMidiSource() {
 }
 
 
-const displayTokenByToken = (tokens) => {
-    tokenDisplay.innerHTML = ''; // Clear current display
-    let index = 0;
-
-    const intervalId = setInterval(() => {
-        if(index < tokens.length){
-            let span = document.createElement('span');
-            span.classList.add('token');
-            span.textContent = tokens[index] + ' ';
-            tokenDisplay.appendChild(span);
-            index++;
-        } else {
-            clearInterval(intervalId);
-        }
-    }, 1); // Adjust the interval time as needed
-}
-
-
 
 document.getElementById('midiFileInput').addEventListener('change', updateMidiSource);
 const tokenDisplay = document.getElementById("text");
@@ -270,64 +250,64 @@ const tokenDisplay = document.getElementById("text");
 
 
 
-document.getElementById('generateButton').addEventListener('click', async () => {
-        await Tone.start()
-        console.log('audio is ready')
+// document.getElementById('generateButton').addEventListener('click', async () => {
+//         await Tone.start()
+//         console.log('audio is ready')
         
-        const maxValue = parseInt(document.getElementById('maxValueInput').value);
+//         const maxValue = parseInt(document.getElementById('maxValueInput').value);
         
-        if (isNaN(maxValue) || maxValue <= 0) {
-            alert('Please enter a valid sequence length.');
-            return;
-        }
+//         if (isNaN(maxValue) || maxValue <= 0) {
+//             alert('Please enter a valid sequence length.');
+//             return;
+//         }
         
-        const requestPayload = {
-            sequence_length: maxValue,
-            context: globalContext,
-            quadrant_use : useVA,
-            quadrant_counts : quadrantCounts,
-            temperatureValue : temperatureValue
-        };
+//         const requestPayload = {
+//             sequence_length: maxValue,
+//             context: globalContext,
+//             quadrant_use : useVA,
+//             quadrant_counts : quadrantCounts,
+//             temperatureValue : temperatureValue
+//         };
 
 
-        try {
-            const response = await fetch('/generate_midi_demo', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestPayload)
-            });
+//         try {
+//             const response = await fetch('/generate_midi_demo', {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json'
+//                 },
+//                 body: JSON.stringify(requestPayload)
+//             });
 
-            if (response.ok) {
-                const responseData = await response.json();
+//             if (response.ok) {
+//                 const responseData = await response.json();
 
                 
-                const newSequence = responseData.context;
-                globalContext = newSequence;
+//                 const newSequence = responseData.context;
+//                 globalContext = newSequence;
 
-                // Update the download button with the link to the MIDI file
-                downloadButton.style.display = 'block';
+//                 // Update the download button with the link to the MIDI file
+//                 downloadButton.style.display = 'block';
                 
-                downloadButton.href = responseData.midi_file_url;
-                downloadButton.download = 'generated_midi_seq.mid';
+//                 downloadButton.href = responseData.midi_file_url;
+//                 downloadButton.download = 'generated_midi_seq.mid';
                 
-                midiPlayer.src = responseData.midi_file_url;
-                midiVisualizer.src = responseData.midi_file_url;
-                console.log(midiPlayer);
+//                 midiPlayer.src = responseData.midi_file_url;
+//                 midiVisualizer.src = responseData.midi_file_url;
+//                 console.log(midiPlayer);
 
-                midiPlayer.stop();
-                midiPlayer.start();
-                // Update generate button text
-                sequenceGenerated = true;
-                updateButtonText();
-            } else {
-                throw new Error('Failed to generate MIDI file');
-            }
-        } catch (error) {
-            console.error(error.message);
-        }
-    });
+//                 midiPlayer.stop();
+//                 midiPlayer.start();
+//                 // Update generate button text
+//                 sequenceGenerated = true;
+//                 updateButtonText();
+//             } else {
+//                 throw new Error('Failed to generate MIDI file');
+//             }
+//         } catch (error) {
+//             console.error(error.message);
+//         }
+//     });
 
 
 
