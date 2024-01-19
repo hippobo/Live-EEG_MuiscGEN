@@ -39,35 +39,61 @@ useVAcheckbox.addEventListener('change', function() {
     generateButton.textContent = 'Generate MIDI Sequence';
     clearContext();
 });
-document.getElementById('connectEEGButton').addEventListener('click', function() {
-    // Show spinner
-    document.getElementById('spinner').style.display = 'inline-block';
+document.addEventListener('DOMContentLoaded', function() {
+    let statusInterval = null;
 
-    // Make a request to the Flask endpoint
-    fetch('/connect_eeg', { method: 'GET' })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
+    function updateEEGStatus() {
+        fetch('/eeg_status', { method: 'GET' })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('successText').innerText = data.message;
+                // Additional UI updates based on data.status can be added here
+            })
+            .catch(error => {
+                console.error('Error fetching EEG status:', error);
+                clearInterval(statusInterval); // Stop polling if there's an error
+            });
+    }
 
-            // Hide spinner and show success message when done
-            document.getElementById('spinner').style.display = 'none';
-            document.getElementById('successText').classList.remove('visually-hidden');
+    document.getElementById('connectEEGButton').addEventListener('click', function() {
+        // Show spinner
+        document.getElementById('spinner').style.display = 'inline-block';
 
-            // Optionally, change the button to a success state
-            document.getElementById('connectEEGButton').classList.remove('btn-primary');
-            document.getElementById('connectEEGButton').classList.add('btn-success');
-        })
-        .catch(error => {
-            console.error('There has been a problem with your fetch operation:', error);
-            document.getElementById('successText').classList.remove('visually-hidden');
-            document.getElementById('successText').classList.add('text-danger');
-            document.getElementById('successText').innerText = 'Failed to connect to EEG headset error: ' + error;
+        // Make a request to the Flask endpoint
+        fetch('/connect_eeg', { method: 'GET' })
+            .then(response => response.json())
+            .then(data => {
+                // Hide spinner
+                document.getElementById('spinner').style.display = 'none';
 
-        });
+                if(data.status === 'success') {
+                    // Show success message
+                    document.getElementById('successText').innerText = data.message;
+                    document.getElementById('successText').classList.remove('text-danger');
+                    document.getElementById('successText').classList.add('text-success');
+                    document.getElementById('successText').classList.remove('visually-hidden');
+
+                    // Change the button to a success state
+                    document.getElementById('connectEEGButton').classList.remove('btn-primary');
+                    document.getElementById('connectEEGButton').classList.add('btn-success');
+
+                    // Start polling for EEG status updates every 2 seconds
+                    statusInterval = setInterval(updateEEGStatus, 5000);
+                } else if(data.status === 'error') {
+                    // Show error message
+                    document.getElementById('successText').innerText = 'Failed to connect to EEG headset: ' + data.message;
+                    document.getElementById('successText').classList.add('text-danger');
+                    document.getElementById('successText').classList.remove('visually-hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch operation error:', error);
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('successText').innerText = 'Network error: ' + error;
+                document.getElementById('successText').classList.add('text-danger');
+                document.getElementById('successText').classList.remove('visually-hidden');
+            });
+    });
 });
 
 
