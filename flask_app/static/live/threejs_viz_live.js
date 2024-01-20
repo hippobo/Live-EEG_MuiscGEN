@@ -116,7 +116,7 @@ function initMaterial() {
 function init() {
     container = document.getElementById('ThreeJsCanvas');
     camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 1, 5000);
-    camera.position.set(0, 50, 2000);
+    camera.position.set(0, 50, 500);
 
     scene = new THREE.Scene();
     scene.add(brainGroup);
@@ -157,7 +157,7 @@ function createLight(name) {
 function loadFont() {
     const fontLoader = new FontLoader(manager);
     fontLoader.load('https://threejs.org/examples/fonts/droid/droid_sans_regular.typeface.json', function(font) {
-        updateText("Brain Activity Live", font);
+        // updateText("Brain Activity Live", font);
     });
 }
 

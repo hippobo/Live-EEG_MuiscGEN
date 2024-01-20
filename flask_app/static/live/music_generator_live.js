@@ -2,6 +2,7 @@
 
 
 let temperatureValue = 0.7;
+const maxValue = 200;
 
 
 
@@ -128,9 +129,10 @@ const ctx = canvas.getContext('2d');
             } else {
                 quadrant = 3; // Bottom-right
             }
-
-            // Increment the count for the quadrant and cycle back to 0 if it's currently 4
+         
+            if (dominance > 1) {
             quadrantCounts[quadrant] = Math.round(dominance - 1) * (4 / (9 - 1));
+            }
 
             // Redraw the quadrant tallies
             drawTallies();
@@ -158,13 +160,8 @@ const ctx = canvas.getContext('2d');
             ctx.fillText(quadrantCounts[3], width * 0.75, height * 0.75); // Bottom-right
         }
 
-        // Event listener for canvas click
-                canvas.addEventListener('click', function(event) {
-            const rect = canvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-            updateTally(x, y);
-        });
+    
+               
 
         // Initial draw
         drawTallies();
@@ -175,11 +172,6 @@ const downloadButton = document.getElementById('downloadButton');
 let midiBlob; 
 
 
-    function updateButtonText() {
-    
-    generateButton.textContent = sequenceGenerated ? 'Add to Sequence' : 'Generate MIDI Sequence';
-        
-}
 
 
 function fetchAndDisplayEmotions() {
@@ -221,6 +213,7 @@ function drawPointOnCanvas(valence, arousal, dominance) {
 }
 
 setInterval(fetchAndDisplayEmotions, 2000);
+setInterval(generateAndPlayMidi, 5000);
 
 function updateMidiSource() {
     var input = document.getElementById('midiFileInput');
@@ -245,70 +238,48 @@ function updateMidiSource() {
 
 
 document.getElementById('midiFileInput').addEventListener('change', updateMidiSource);
-const tokenDisplay = document.getElementById("text");
 
 
 
 
-// document.getElementById('generateButton').addEventListener('click', async () => {
-//         await Tone.start()
-//         console.log('audio is ready')
-        
-//         const maxValue = parseInt(document.getElementById('maxValueInput').value);
-        
-//         if (isNaN(maxValue) || maxValue <= 0) {
-//             alert('Please enter a valid sequence length.');
-//             return;
-//         }
-        
-//         const requestPayload = {
-//             sequence_length: maxValue,
-//             context: globalContext,
-//             quadrant_use : useVA,
-//             quadrant_counts : quadrantCounts,
-//             temperatureValue : temperatureValue
-//         };
 
+function generateAndPlayMidi() {
+        const requestPayload = {
+            sequence_length: maxValue,
+            context: globalContext,
+            quadrant_counts: quadrantCounts,
+            temperatureValue: temperatureValue
+        };
+    
+        fetch('/generate_midi_live', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestPayload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            const newSequence = data.context;
+                globalContext = newSequence;
+                console.log(globalContext);
 
-//         try {
-//             const response = await fetch('/generate_midi_demo', {
-//                 method: 'POST',
-//                 headers: {
-//                     'Content-Type': 'application/json'
-//                 },
-//                 body: JSON.stringify(requestPayload)
-//             });
-
-//             if (response.ok) {
-//                 const responseData = await response.json();
-
+               
+                downloadButton.style.display = 'block';
                 
-//                 const newSequence = responseData.context;
-//                 globalContext = newSequence;
-
-//                 // Update the download button with the link to the MIDI file
-//                 downloadButton.style.display = 'block';
+                downloadButton.href = data.midi_file_url;
+                downloadButton.download = 'generated_midi_seq.mid';
                 
-//                 downloadButton.href = responseData.midi_file_url;
-//                 downloadButton.download = 'generated_midi_seq.mid';
-                
-//                 midiPlayer.src = responseData.midi_file_url;
-//                 midiVisualizer.src = responseData.midi_file_url;
-//                 console.log(midiPlayer);
+                midiPlayer.src = data.midi_file_url;
+                midiVisualizer.src = data.midi_file_url;
 
-//                 midiPlayer.stop();
-//                 midiPlayer.start();
-//                 // Update generate button text
-//                 sequenceGenerated = true;
-//                 updateButtonText();
-//             } else {
-//                 throw new Error('Failed to generate MIDI file');
-//             }
-//         } catch (error) {
-//             console.error(error.message);
-//         }
-//     });
-
-
+                midiPlayer.stop();
+                midiPlayer.start();
+        })
+        .catch(error => {
+            console.error('Error generating MIDI:', error);
+        });
+    }
+    
 
 

@@ -247,8 +247,7 @@ def generate_midi_demo():
     quadrant_use = data['quadrant_use']
     condition_values = data['quadrant_counts']
     temperature_value = data['temperatureValue']
-    # print(condition_values)
-    # print(context)
+   
    
 
     if not quadrant_use:
@@ -290,6 +289,45 @@ def generate_midi_demo():
 
     response = make_response(jsonify(response_data))
     return response
+
+
+@app.route('/generate_midi_live', methods=['POST'])
+def generate_midi_live():
+
+    data = request.json
+    
+    sequence_length = data['sequence_length']
+    context = data['context'] 
+    condition_values = data['quadrant_counts']
+    temperature_value = data['temperatureValue']
+   
+    print("context", len(context))
+    
+    context = torch.tensor(context, dtype=torch.long, device=device)
+    context = context.unsqueeze(0)
+
+    model_emopia.load_state_dict(torch.load(f"models/model_emopia.pt", map_location=device))
+    model_emopia.eval()
+
+    output_directory = 'generated_midi'
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+    generated_seq = model_emopia.generate(context, condition=torch.tensor(data=condition_values, dtype=torch.float, device=device), max_new_tokens=sequence_length, temperature=temperature_value)
+
+    midi = emopia_tokenizer.tokens_to_midi(generated_seq.tolist()[0])
+    output_file_name = secure_filename(f"generated_midi_seq.mid")
+    output_file_path = os.path.join(output_directory, output_file_name)
+    midi.dump(output_file_path)
+     
+    response_data = {
+        'context': generated_seq.tolist()[0],  # Include the generated sequence tokens
+        'midi_file_url': f"/download_midi/{output_file_name}"  # URL to download the MIDI file
+    }  
+
+    response = make_response(jsonify(response_data))
+    return response
+
+
 
 @app.route('/download_midi/<filename>')
 def download_midi(filename):
