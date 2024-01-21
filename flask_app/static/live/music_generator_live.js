@@ -237,42 +237,16 @@ function drawPointOnCanvas(valence, arousal, dominance) {
 
 setInterval(fetchAndDisplayEmotions, 2000);
 
-function updateMidiSource() {
-    var input = document.getElementById('midiFileInput');
-    var file = input.files[0];
-    if (file) {
-        var reader = new FileReader();
-
-        reader.onload = function(e) {
-         
-
-            midiPlayer.src = e.target.result;
-            midiVisualizer.src = e.target.result;
-            
-            // midiPlayer.stop();
-            // midiPlayer.start();
-        };
-
-        reader.readAsDataURL(file);
-    }
-}
-
-
-
-document.getElementById('midiFileInput').addEventListener('change', updateMidiSource);
-
-
-
-
 
 function generateAndPlayMidi() {
+
         const requestPayload = {
             sequence_length: maxValue,
             context: globalContext,
             quadrant_counts: quadrantCounts,
             temperatureValue: temperatureValue
         };
-    
+        console.log(globalContext);
         fetch('/generate_midi_live', {
             method: 'POST',
             headers: {
@@ -291,16 +265,31 @@ function generateAndPlayMidi() {
                 downloadButton.href = data.midi_file_url;
                 downloadButton.download = 'generated_midi_seq.mid';
                 
-                midiPlayer.src = data.midi_file_url;
+            
                 midiVisualizer.src = data.midi_file_url;
-
-                midiPlayer.stop();
-                midiPlayer.start();
+                playSound()
+                MIDIjs.play(data.midi_file_url);
         })
         .catch(error => {
             console.error('Error generating MIDI:', error);
         });
     }
     
+    let audioContext = new AudioContext();
 
+    // Function to ensure AudioContext is in running state
+    function ensureAudioContextState() {
+        if (audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
+                console.log('AudioContext resumed successfully');
+            });
+        }
+    }
+    
+    // Use this function whenever you need to use the AudioContext
+    function playSound() {
+        ensureAudioContextState();
+        // Your code to play sound goes here
+    }
+    
 

@@ -289,41 +289,44 @@ def generate_midi_demo():
     response = make_response(jsonify(response_data))
     return response
 
-
 @app.route('/generate_midi_live', methods=['POST'])
 def generate_midi_live():
-
     data = request.json
     
     sequence_length = data['sequence_length']
-    context = data['context'] 
+    context = data['context']
     condition_values = data['quadrant_counts']
     temperature_value = data['temperatureValue']
-   
     
-    context = torch.tensor(context, dtype=torch.long, device=device)
-    context = context.unsqueeze(0)
+    context_tensor = torch.tensor(context, dtype=torch.long, device=device)
+    context_tensor = context_tensor.unsqueeze(0)
 
     model_emopia.load_state_dict(torch.load(f"models/model_emopia.pt", map_location=device))
     model_emopia.eval()
 
+    # Generate new sequence tokens
+    with torch.no_grad():
+        new_seq = model_emopia.generate(context_tensor, condition=torch.tensor(data=condition_values, dtype=torch.float, device=device), max_new_tokens=sequence_length, temperature=temperature_value)
+    
+    # Convert only the new tokens to MIDI
+    new_tokens = new_seq[:, len(context):].tolist()[0]  # Extract only the new tokens
+    midi = emopia_tokenizer.tokens_to_midi(new_tokens)
+    
     output_directory = 'generated_midi'
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
-    generated_seq = model_emopia.generate(context, condition=torch.tensor(data=condition_values, dtype=torch.float, device=device), max_new_tokens=sequence_length, temperature=temperature_value)
 
-    midi = emopia_tokenizer.tokens_to_midi(generated_seq.tolist()[0])
     output_file_name = secure_filename(f"generated_midi_seq.mid")
     output_file_path = os.path.join(output_directory, output_file_name)
     midi.dump(output_file_path)
-     
+      
     response_data = {
-        'context': generated_seq.tolist()[0],  # Include the generated sequence tokens
-        'midi_file_url': f"/download_midi/{output_file_name}"  # URL to download the MIDI file
-    }  
+        'context': new_tokens,  # Include only the new sequence tokens
+        'midi_file_url': f"/download_midi/{output_file_name}"  # URL to download the new MIDI file
+    }
 
-    response = make_response(jsonify(response_data))
-    return response
+    return make_response(jsonify(response_data))
+
 
 
 

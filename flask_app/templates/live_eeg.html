@@ -14,6 +14,7 @@
 
 <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
 
+<script type='text/javascript' src='//www.midijs.net/lib/midi.js'></script>
 
 
 
@@ -49,9 +50,7 @@
     <div class="container-fluid">
         
 <div class = "midi_generator">
-    <div>
-        <input type="file" id="midiFileInput" accept=".mid,.midi" />
-    </div>
+   
 
 
     <button type="button" id="connectEEGButton" class="btn btn-primary" data-bs-target="#staticBackdrop">
@@ -67,7 +66,7 @@
         <section id="section1">
             <h1>MIDI Sequence Generator</h1>
          
-            <midi-player src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid" sound-font visualizer="#section1 midi-visualizer"></midi-player>
+          
             <midi-visualizer id="player" type="piano-roll" src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid"></midi-visualizer>
         </section>
 
