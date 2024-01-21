@@ -214,7 +214,6 @@ def eeg_inference():
 @app.route('/eeg_emotions')
 def get_eeg_emotions():
     global emotions
-    print("emotions", emotions) 
     return jsonify({
         "valence": emotions[0][0],
         "arousal": emotions[0][1],
@@ -301,7 +300,6 @@ def generate_midi_live():
     condition_values = data['quadrant_counts']
     temperature_value = data['temperatureValue']
    
-    print("context", len(context))
     
     context = torch.tensor(context, dtype=torch.long, device=device)
     context = context.unsqueeze(0)

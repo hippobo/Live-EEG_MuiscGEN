@@ -2,12 +2,15 @@
 
 
 let temperatureValue = 0.7;
-const maxValue = 200;
+const maxValue = 100;
 
 
 
 let sequenceGenerated = false;
 let globalContext = [221]; //initial context
+let lastQuadrant = null;
+let prevValence = 0, prevArousal = 0, prevDominance = 0;
+let musicIntervalStarted = false;
 
 
 
@@ -117,8 +120,7 @@ const ctx = canvas.getContext('2d');
         function updateTally(x, y, dominance) {
             const width = canvas.width;
             const height = canvas.height;
-
-            // Determine the quadrant
+        
             let quadrant;
             if (x < width / 2 && y < height / 2) {
                 quadrant = 1; // Top-left
@@ -129,14 +131,21 @@ const ctx = canvas.getContext('2d');
             } else {
                 quadrant = 3; // Bottom-right
             }
-         
-            if (dominance > 1) {
-            quadrantCounts[quadrant] = Math.round(dominance - 1) * (4 / (9 - 1));
+        
+            // Reset the previous quadrant's tally if the quadrant changes
+            if (lastQuadrant !== null && lastQuadrant !== quadrant) {
+                quadrantCounts[lastQuadrant] = 0;
             }
-
-            // Redraw the quadrant tallies
+        
+            if (dominance > 1) {
+                quadrantCounts[quadrant] = Math.round(dominance - 1) * (4 / (9 - 1));
+            }
+        
+            lastQuadrant = quadrant; // Update the lastQuadrant
+        
             drawTallies();
         }
+        
 
         
         function drawTallies() {
@@ -174,12 +183,26 @@ let midiBlob;
 
 
 
+
 function fetchAndDisplayEmotions() {
     fetch('/eeg_emotions')
         .then(response => response.json())
         .then(data => {
             const { valence, arousal, dominance } = data;
-            drawPointOnCanvas(valence, arousal, dominance);
+
+            // Check if emotions have changed
+            if (valence !== prevValence || arousal !== prevArousal || dominance !== prevDominance) {
+                drawPointOnCanvas(valence, arousal, dominance);
+                prevValence = valence;
+                prevArousal = arousal;
+                prevDominance = dominance;
+
+                if (!musicIntervalStarted && valence != 0 && arousal != 0 && dominance != 0) {
+                    setInterval(generateAndPlayMidi, 5000); // Start generating music at regular intervals
+                    console.log("generating music...");
+                    musicIntervalStarted = true;
+                }
+            }
         })
         .catch(error => console.error('Error fetching EEG emotions:', error));
 }
@@ -213,7 +236,6 @@ function drawPointOnCanvas(valence, arousal, dominance) {
 }
 
 setInterval(fetchAndDisplayEmotions, 2000);
-setInterval(generateAndPlayMidi, 5000);
 
 function updateMidiSource() {
     var input = document.getElementById('midiFileInput');
@@ -262,7 +284,6 @@ function generateAndPlayMidi() {
         .then(data => {
             const newSequence = data.context;
                 globalContext = newSequence;
-                console.log(globalContext);
 
                
                 downloadButton.style.display = 'block';
