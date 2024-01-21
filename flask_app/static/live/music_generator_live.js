@@ -1,8 +1,8 @@
 
 
 
-let temperatureValue = 0.7;
-const maxValue = 100;
+let temperatureValue = 1.0;
+const maxValue = 200;
 
 
 
@@ -11,10 +11,9 @@ let globalContext = [221]; //initial context
 let lastQuadrant = null;
 let prevValence = 0, prevArousal = 0, prevDominance = 0;
 let musicIntervalStarted = false;
-
-
-
-const midiPlayer = document.querySelector('midi-player');
+let newMidiAvailable = false;
+let newMidiUrl = null; // Globally accessible new MIDI URL
+let isPlaying=false;
 const midiVisualizer = document.querySelector('midi-visualizer');
 
 
@@ -178,9 +177,6 @@ const ctx = canvas.getContext('2d');
 
 
 const downloadButton = document.getElementById('downloadButton');
-let midiBlob; 
-
-
 
 
 
@@ -197,15 +193,16 @@ function fetchAndDisplayEmotions() {
                 prevArousal = arousal;
                 prevDominance = dominance;
 
+                // Only start generating music if not already started
                 if (!musicIntervalStarted && valence != 0 && arousal != 0 && dominance != 0) {
                     setInterval(generateAndPlayMidi, 5000); // Start generating music at regular intervals
-                    console.log("generating music...");
                     musicIntervalStarted = true;
                 }
             }
         })
         .catch(error => console.error('Error fetching EEG emotions:', error));
 }
+
 
 function drawPointOnCanvas(valence, arousal, dominance) {
     const width = canvas.width;
@@ -235,61 +232,78 @@ function drawPointOnCanvas(valence, arousal, dominance) {
     
 }
 
-setInterval(fetchAndDisplayEmotions, 2000);
+let audioContext = new AudioContext();
 
-
-function generateAndPlayMidi() {
-
-        const requestPayload = {
-            sequence_length: maxValue,
-            context: globalContext,
-            quadrant_counts: quadrantCounts,
-            temperatureValue: temperatureValue
-        };
-        console.log(globalContext);
-        fetch('/generate_midi_live', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestPayload)
-        })
-        .then(response => response.json())
-        .then(data => {
-            const newSequence = data.context;
-                globalContext = newSequence;
-
-               
-                downloadButton.style.display = 'block';
-                
-                downloadButton.href = data.midi_file_url;
-                downloadButton.download = 'generated_midi_seq.mid';
-                
-            
-                midiVisualizer.src = data.midi_file_url;
-                playSound()
-                MIDIjs.play(data.midi_file_url);
-        })
-        .catch(error => {
-            console.error('Error generating MIDI:', error);
+// Function to ensure AudioContext is in running state
+function ensureAudioContextState() {
+    if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            console.log('AudioContext resumed successfully');
         });
     }
-    
-    let audioContext = new AudioContext();
+}
 
-    // Function to ensure AudioContext is in running state
-    function ensureAudioContextState() {
-        if (audioContext.state === 'suspended') {
-            audioContext.resume().then(() => {
-                console.log('AudioContext resumed successfully');
-            });
+// Use this function whenever you need to use the AudioContext
+function playSound() {
+    ensureAudioContextState();
+    
+}
+
+setInterval(fetchAndDisplayEmotions, 1000);
+
+function generateAndPlayMidi() {
+    const requestPayload = {
+        sequence_length: maxValue,
+        context: globalContext,
+        quadrant_counts: quadrantCounts,
+        temperatureValue: temperatureValue
+    };
+
+    fetch('/generate_midi_live', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestPayload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        globalContext = data.full_context;
+
+        downloadButton.style.display = 'block';
+        downloadButton.href = data.midi_file_url;
+        downloadButton.download = 'generated_midi_seq.mid';
+
+        // Set the new MIDI URL and let the player callback handle playing it
+        newMidiAvailable = true;
+        newMidiUrl = data.midi_file_url;
+        midiVisualizer.src = newMidiUrl;
+        playSound();
+        playMidiFile(newMidiUrl);
+    })
+    .catch(error => {
+        console.error('Error generating MIDI:', error);
+    });
+}function playMidiFile(url) {
+    playSound();
+    MIDIjs.play(url);
+    isPlaying = true; // Set to true when a MIDI file starts playing
+
+    MIDIjs.player_callback = function(event) {
+        if (event && event.time >= event.totalTime) {
+            isPlaying = false; // Set to false when the current MIDI file ends
+            // Check if a new MIDI file is available and it's not already playing
+            if (newMidiAvailable) {
+                // If a new MIDI is available and the player is not currently playing,
+                // play the new MIDI file
+                playSound();
+                MIDIjs.play(newMidiUrl);
+                newMidiAvailable = false; // Reset flag
+                isPlaying = true; // Set to true as a new MIDI file starts playing
+            }
         }
-    }
-    
-    // Use this function whenever you need to use the AudioContext
-    function playSound() {
-        ensureAudioContextState();
-        // Your code to play sound goes here
-    }
-    
+    };
+}
+
+
 

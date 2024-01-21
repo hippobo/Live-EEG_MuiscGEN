@@ -246,9 +246,9 @@ def generate_midi_demo():
     quadrant_use = data['quadrant_use']
     condition_values = data['quadrant_counts']
     temperature_value = data['temperatureValue']
+    print(condition_values)
    
-   
-
+ 
     if not quadrant_use:
         context = torch.tensor(context, dtype=torch.long, device=device)
         context = context.unsqueeze(0)
@@ -297,7 +297,9 @@ def generate_midi_live():
     context = data['context']
     condition_values = data['quadrant_counts']
     temperature_value = data['temperatureValue']
-    
+
+    print("condition", condition_values)
+    print(len(context))
     context_tensor = torch.tensor(context, dtype=torch.long, device=device)
     context_tensor = context_tensor.unsqueeze(0)
 
@@ -309,6 +311,7 @@ def generate_midi_live():
         new_seq = model_emopia.generate(context_tensor, condition=torch.tensor(data=condition_values, dtype=torch.float, device=device), max_new_tokens=sequence_length, temperature=temperature_value)
     
     # Convert only the new tokens to MIDI
+    all_tokens = new_seq.tolist()[0]
     new_tokens = new_seq[:, len(context):].tolist()[0]  # Extract only the new tokens
     midi = emopia_tokenizer.tokens_to_midi(new_tokens)
     
@@ -321,7 +324,7 @@ def generate_midi_live():
     midi.dump(output_file_path)
       
     response_data = {
-        'context': new_tokens,  # Include only the new sequence tokens
+        'full_context' : all_tokens,
         'midi_file_url': f"/download_midi/{output_file_name}"  # URL to download the new MIDI file
     }
 
