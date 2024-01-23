@@ -5,7 +5,7 @@ let temperatureValue = 1.0;
 const maxValue = 200;
 
 
-
+    
 let sequenceGenerated = false;
 let globalContext = [221]; //initial context
 let lastQuadrant = null;
@@ -15,7 +15,6 @@ let newMidiAvailable = false;
 let newMidiUrl = null; // Globally accessible new MIDI URL
 let isPlaying=false;
 const midiVisualizer = document.querySelector('midi-visualizer');
-
 
 
 const quadrantsDiv = document.getElementById('quadrants');
@@ -45,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/connect_eeg', { method: 'GET' })
             .then(response => response.json())
             .then(data => {
-                // Hide spinner
+                // Hide spinner 
                 document.getElementById('spinner').style.display = 'none';
 
                 if(data.status === 'success') {
@@ -269,41 +268,53 @@ function generateAndPlayMidi() {
     .then(response => response.json())
     .then(data => {
         globalContext = data.full_context;
-
         downloadButton.style.display = 'block';
         downloadButton.href = data.midi_file_url;
         downloadButton.download = 'generated_midi_seq.mid';
 
-        // Set the new MIDI URL and let the player callback handle playing it
         newMidiAvailable = true;
-        newMidiUrl = data.midi_file_url;
+        newMidiUrl = data.midi_file_url + '?t=' + new Date().getTime();
         midiVisualizer.src = newMidiUrl;
+
+        // Playing the new MIDI file
         playSound();
         playMidiFile(newMidiUrl);
+        console.log("New MIDI URL set: " + newMidiUrl); // Debugging log
     })
     .catch(error => {
         console.error('Error generating MIDI:', error);
     });
-}function playMidiFile(url) {
-    playSound();
+}
+
+function playMidiFile(url) {
+    // Ensuring the AudioContext is in a running state
+    if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            console.log('AudioContext resumed successfully');
+            startMidiPlayback(url);
+        });
+    } else {
+        startMidiPlayback(url);
+    }
+}
+function startMidiPlayback(url) {
+    // MIDIjs.stop(); // Stop any currently playing MIDI
     MIDIjs.play(url);
     isPlaying = true; // Set to true when a MIDI file starts playing
+    console.log("Playing MIDI: " + url); // Debugging log
 
     MIDIjs.player_callback = function(event) {
         if (event && event.time >= event.totalTime) {
-            isPlaying = false; // Set to false when the current MIDI file ends
-            // Check if a new MIDI file is available and it's not already playing
+            console.log("MIDI playback completed."); // Debugging log
+            // Check if a new MIDI is available
             if (newMidiAvailable) {
-                // If a new MIDI is available and the player is not currently playing,
-                // play the new MIDI file
-                playSound();
-                MIDIjs.play(newMidiUrl);
                 newMidiAvailable = false; // Reset flag
-                isPlaying = true; // Set to true as a new MIDI file starts playing
+                console.log("Switching to new MIDI file."); // Debugging log
+                startMidiPlayback(newMidiUrl); // Play new MIDI
+            } else {
+                console.log("Replaying the same MIDI file."); // Debugging log
+                startMidiPlayback(url); // Loop the current MIDI file
             }
         }
     };
 }
-
-
-

@@ -299,7 +299,8 @@ def generate_midi_live():
     temperature_value = data['temperatureValue']
 
     print("condition", condition_values)
-    print(len(context))
+    # print("context", context)   
+    print("length context",len(context))
     context_tensor = torch.tensor(context, dtype=torch.long, device=device)
     context_tensor = context_tensor.unsqueeze(0)
 
@@ -312,7 +313,10 @@ def generate_midi_live():
     
     # Convert only the new tokens to MIDI
     all_tokens = new_seq.tolist()[0]
+    # print("all tokens", all_tokens)
+
     new_tokens = new_seq[:, len(context):].tolist()[0]  # Extract only the new tokens
+    # print("new tokens", new_tokens)
     midi = emopia_tokenizer.tokens_to_midi(new_tokens)
     
     output_directory = 'generated_midi'
