@@ -27,6 +27,12 @@ conda activate myenv
 ```python
 pip install -r requirements
 ```
+- Run flask 
+
+```python
+cd flask_app
+flask run
+```
 
 # To use 
 
