@@ -10,6 +10,7 @@ from miditok import REMI, REMIPlus, TokenizerConfig
 from pathlib import Path
 import os
 import json
+from mido import MidiFile, MetaMessage, tempo2bpm, bpm2tempo
 from torch.utils.data import Dataset
 
 from generatordecoder import GeneratorModelDecoder
@@ -124,15 +125,17 @@ def eeg_inference():
 
     # Get the streamed data from the Muse. Blue Muse must be streaming.
     process = subprocess.Popen("muselsl stream --address 00:55:DA:B5:D5:CF", shell=True)
-    print('Waiting 10 seconds for EEG stream to start...')
+    eeg_status = {"message": "Waiting 10 seconds for EEG stream...", "status": "waiting"}
     time.sleep(10)
 
     # Search for active LSL streams
     print('Looking for an EEG stream...')
+    eeg_status = {"message": "Looking for EEG stream...", "status": "searching"}
     streams = resolve_byprop('type', 'EEG', timeout=10, minimum=1)
    
 
     if len(streams) == 0:
+        eeg_status = {"message": "Error: Can't find EEG stream. Make sure Bluetooth is turned on", "status": "error"}
         raise RuntimeError('Can\'t find EEG stream.')
 
     # Set active EEG stream to inlet and apply time correction
@@ -228,7 +231,7 @@ def connect_eeg():
         thread.start()
 
         # Return a response immediately
-        return jsonify({"status": "success", "message": "EEG connection initiated."})
+        return jsonify({"status": "success", "message": "EEG connection process intiatiated."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -317,7 +320,10 @@ def generate_midi_live():
 
     new_tokens = new_seq[:, len(context):].tolist()[0]  # Extract only the new tokens
     # print("new tokens", new_tokens)
-    midi = emopia_tokenizer.tokens_to_midi(new_tokens)
+    midi = emopia_tokenizer.tokens_to_midi(new_tokens, programs=[1])
+
+
+    
     
     output_directory = 'generated_midi'
     if not os.path.exists(output_directory):
@@ -326,6 +332,11 @@ def generate_midi_live():
     output_file_name = secure_filename(f"generated_midi_seq.mid")
     output_file_path = os.path.join(output_directory, output_file_name)
     midi.dump(output_file_path)
+
+    modify_midi_tempo(midi, 120)
+
+
+    
       
     response_data = {
         'full_context' : all_tokens,
@@ -334,6 +345,27 @@ def generate_midi_live():
 
     return make_response(jsonify(response_data))
 
+def modify_midi_tempo(midi, new_bpm):
+    # Convert BPM to a tempo (in microseconds per beat)
+
+    midi_file = MidiFile("./generated_midi/generated_midi_seq.mid")
+    new_tempo = bpm2tempo(new_bpm)
+
+    # Flag to check if a 'set_tempo' message was found and modified
+    tempo_modified = False
+
+    for track in midi_file.tracks:
+        for msg in track:
+            if msg.type == 'set_tempo':
+                # Modify the tempo of the first 'set_tempo' message found
+                msg.tempo = new_tempo
+                tempo_modified = True
+                break  # Stop after modifying the first 'set_tempo' message
+
+        if tempo_modified:
+            break  # Stop after modifying the tempo in the first track where it's found
+
+    midi_file.save("./generated_midi/generated_midi_seq.mid")
 
 
 

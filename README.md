@@ -9,9 +9,24 @@ Music is generated based on these values, using a model trained on the DEAP data
 
 Image of app using Arousal/Valence Quadrant values to condition generation
 
-![App screenshot using quadrants](docs/flask_screen1.png)
+![Gif_live](docs/gif_flask_app_live.gif)
 
 
+
+# Installation
+
+- Clone this repo
+
+- Create conda env with python :
+``` python
+conda create --name myenv -c conda-forge python=3.11.4
+conda activate myenv
+```
+- Install requirements :
+
+```python
+pip install -r requirements
+```
 
 # To use 
 

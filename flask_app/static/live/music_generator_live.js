@@ -2,7 +2,7 @@
 
 
 let temperatureValue = 1.0;
-const maxValue = 200;
+const maxValue = 300;
 
 
     
@@ -15,6 +15,8 @@ let newMidiAvailable = false;
 let newMidiUrl = null; // Globally accessible new MIDI URL
 let isPlaying=false;
 const midiVisualizer = document.querySelector('midi-visualizer');
+// const midiPlayer = document.querySelector('midi-player');
+
 
 
 const quadrantsDiv = document.getElementById('quadrants');
@@ -22,6 +24,9 @@ quadrantsDiv.style.display = 'block';
 
 document.addEventListener('DOMContentLoaded', function() {
     let statusInterval = null;
+
+    
+   
 
     function updateEEGStatus() {
         fetch('/eeg_status', { method: 'GET' })
@@ -58,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('connectEEGButton').classList.remove('btn-primary');
                     document.getElementById('connectEEGButton').classList.add('btn-success');
 
-                    // Start polling for EEG status updates every 2 seconds
+                    // Start polling for EEG status updates every 5 seconds
                     statusInterval = setInterval(updateEEGStatus, 5000);
                 } else if(data.status === 'error') {
                     // Show error message
@@ -271,10 +276,11 @@ function generateAndPlayMidi() {
         downloadButton.style.display = 'block';
         downloadButton.href = data.midi_file_url;
         downloadButton.download = 'generated_midi_seq.mid';
-
+        console.log("Generating Midi...");
         newMidiAvailable = true;
         newMidiUrl = data.midi_file_url + '?t=' + new Date().getTime();
         midiVisualizer.src = newMidiUrl;
+        midiPlayer.src = newMidiUrl;
 
         // Playing the new MIDI file
         playSound();
@@ -300,15 +306,17 @@ function playMidiFile(url) {
 function startMidiPlayback(url) {
     // MIDIjs.stop(); // Stop any currently playing MIDI
     MIDIjs.play(url);
+    // midiPlayer.src = url;
+    // console.log(midiPlayer.start());
     isPlaying = true; // Set to true when a MIDI file starts playing
     console.log("Playing MIDI: " + url); // Debugging log
-
+    MIDIjs.get_duration(url, function(seconds) { console.log("Duration (seconds): " + seconds);} ) 
     MIDIjs.player_callback = function(event) {
         if (event && event.time >= event.totalTime) {
             console.log("MIDI playback completed."); // Debugging log
             // Check if a new MIDI is available
             if (newMidiAvailable) {
-                newMidiAvailable = false; // Reset flag
+                newMidiAvailable = false; // Reset flag 
                 console.log("Switching to new MIDI file."); // Debugging log
                 startMidiPlayback(newMidiUrl); // Play new MIDI
             } else {
